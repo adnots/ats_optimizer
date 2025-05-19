@@ -2,18 +2,20 @@ from fastapi import FastAPI, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from PyPDF2 import PdfReader
+from dotenv import load_dotenv
+from fpdf import FPDF
 import io
 import os
 import openai
-from dotenv import load_dotenv
-from fpdf import FPDF  # pip install fpdf.
 
+# Carrega variáveis de ambiente do .env
 load_dotenv()
-
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Instância do FastAPI
 app = FastAPI()
 
+# Configuração de CORS (libera requisições de qualquer origem)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,11 +30,14 @@ def read_root():
 
 @app.post("/optimize")
 async def optimize_cv(cv_file: UploadFile, job_description: str = Form(...)):
-    contents = await cv_file.read()
-    pdf_reader = PdfReader(io.BytesIO(contents))
-    cv_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
+    try:
+        # Leitura do conteúdo do arquivo PDF enviado
+        contents = await cv_file.read()
+        pdf_reader = PdfReader(io.BytesIO(contents))
+        cv_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
 
-    prompt = f"""
+        # Monta prompt para otimização via OpenAI
+        prompt = f"""
 Você é um especialista em RH com foco em currículos otimizados para ATS (Applicant Tracking Systems).
 Recebeu o seguinte CV:
 
@@ -44,9 +49,9 @@ E a seguinte descrição de vaga:
 
 Com base nisso, reescreva e otimize o CV, adaptando-o para essa vaga, destacando os pontos relevantes.
 Não invente informações, apenas reorganize, ajuste a linguagem e destaque habilidades e experiências alinhadas.
-    """
+        """
 
-    try:
+        # Chamada à OpenAI
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             temperature=0.7,
@@ -54,13 +59,12 @@ Não invente informações, apenas reorganize, ajuste a linguagem e destaque hab
         )
         optimized_text = response["choices"][0]["message"]["content"]
 
-        # Gerar PDF com o texto otimizado
+        # Geração do PDF otimizado
         pdf = FPDF()
         pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
         pdf.set_font("Arial", size=12)
 
-        # Dividir o texto em linhas para o PDF (limitar largura)
         for line in optimized_text.split('\n'):
             pdf.multi_cell(0, 10, line)
 
