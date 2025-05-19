@@ -11,3 +11,4 @@ requests
 starlette
 typer
 uvicorn
+fpdf
