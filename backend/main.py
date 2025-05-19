@@ -6,7 +6,7 @@ import io
 import os
 import openai
 from dotenv import load_dotenv
-from fpdf import FPDF  # pip install fpdf x
+from fpdf import FPDF  # pip install fpdf.
 
 load_dotenv()
 
