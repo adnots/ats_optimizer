@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
 export default function App() {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
@@ -25,7 +27,7 @@ export default function App() {
     formData.append("job_description", jobDescription);
 
     try {
-      const response = await fetch("http://localhost:8000/optimize", {
+      const response = await fetch(`${API_BASE_URL}/optimize`, {
         method: "POST",
         body: formData,
       });
