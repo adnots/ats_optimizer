@@ -8,7 +8,7 @@ import io
 import os
 import openai
 
-# Carrega variáveis de ambiente do .envx
+# Carrega variáveis de ambiente do .env
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
