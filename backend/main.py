@@ -28,5 +28,9 @@ async def optimize_cv(cv_file: UploadFile, job_description: str = Form(...)):
     text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
 
     # Simula otimização
-    optimized = f"CV original:\n{text[:500]}...\n\nJob Description:\n{job_description[:300]}...\n\nCV otimizado: (exemplo)"
-    return JSONResponse({ "optimized_cv": optimized })
+    optimized = (
+        f"CV original (primeiros 500 caracteres):\n{text[:500]}...\n\n"
+        f"Job Description (primeiros 300 caracteres):\n{job_description[:300]}...\n\n"
+        "CV otimizado: (exemplo)"
+    )
+    return JSONResponse({"optimized_cv": optimized})
