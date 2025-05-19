@@ -1,36 +1,78 @@
 from fastapi import FastAPI, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from PyPDF2 import PdfReader
 import io
+import os
+import openai
+from dotenv import load_dotenv
+from fpdf import FPDF  # pip install fpdf
+
+load_dotenv()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
-# Habilita CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, troque por origem específica
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Rota raiz para verificação
 @app.get("/")
 def read_root():
-    return {"message": "API de Otimização de CV está rodando!"}
+    return {"message": "API de Otimização de CV com IA está ativa."}
 
-# Rota principal de otimização
 @app.post("/optimize")
 async def optimize_cv(cv_file: UploadFile, job_description: str = Form(...)):
     contents = await cv_file.read()
     pdf_reader = PdfReader(io.BytesIO(contents))
-    text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
+    cv_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
 
-    # Simula otimização
-    optimized = (
-        f"CV original (primeiros 500 caracteres):\n{text[:500]}...\n\n"
-        f"Job Description (primeiros 300 caracteres):\n{job_description[:300]}...\n\n"
-        "CV otimizado: (exemplo)"
-    )
-    return JSONResponse({"optimized_cv": optimized})
+    prompt = f"""
+Você é um especialista em RH com foco em currículos otimizados para ATS (Applicant Tracking Systems).
+Recebeu o seguinte CV:
+
+{cv_text[:2000]}
+
+E a seguinte descrição de vaga:
+
+{job_description[:1500]}
+
+Com base nisso, reescreva e otimize o CV, adaptando-o para essa vaga, destacando os pontos relevantes.
+Não invente informações, apenas reorganize, ajuste a linguagem e destaque habilidades e experiências alinhadas.
+    """
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            temperature=0.7,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        optimized_text = response["choices"][0]["message"]["content"]
+
+        # Gerar PDF com o texto otimizado
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.set_font("Arial", size=12)
+
+        # Dividir o texto em linhas para o PDF (limitar largura)
+        for line in optimized_text.split('\n'):
+            pdf.multi_cell(0, 10, line)
+
+        pdf_output = io.BytesIO()
+        pdf.output(pdf_output)
+        pdf_output.seek(0)
+
+        headers = {
+            "Content-Disposition": 'attachment; filename="cv_otimizado.pdf"'
+        }
+
+        return StreamingResponse(pdf_output, media_type="application/pdf", headers=headers)
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
