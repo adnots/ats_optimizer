@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form
+from fastapi import FastAPI, UploadFile, Form, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from PyPDF2 import PdfReader
@@ -80,3 +80,18 @@ Não invente informações, apenas reorganize, ajuste a linguagem e destaque hab
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.post("/optimize")
+async def optimize(cv: UploadFile = File(...)):
+    try:
+        contents = await cv.read()
+        print(f"Arquivo recebido: {cv.filename}, tamanho: {len(contents)} bytes")
+
+        # processar o conteúdo...
+        return {"mensagem": "CV otimizado com sucesso"}
+
+    except Exception as e:
+        import traceback
+        print("Erro ao processar CV:")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
