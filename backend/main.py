@@ -15,14 +15,15 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
-# ✅ Adicione isso
+# ✅ Adicione todos os domínios que você usa
 origins = [
-    "https://ats-optimizer-2.onrender.com",  # frontend
+    "https://ats-optimizer-2.onrender.com",  # frontend hospedado
+    "http://localhost:5173",                 # desenvolvimento local
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # 👈 frontend autorizado
+    allow_origins=origins,  # 🟢 Lista branca de domínios
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
