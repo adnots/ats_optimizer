@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
@@ -26,22 +26,18 @@ export default function App() {
       });
 
       if (!response.ok) {
-        // tenta extrair mensagem de erro detalhada do JSON
-        let errorMessage = "Erro ao otimizar CV";
+        let errorMessage = "Erro ao otimizar CV.";
         try {
           const errorData = await response.json();
           if (errorData.message) errorMessage = errorData.message;
         } catch {
-          // erro ao tentar ler JSON, mantem mensagem genérica
+          // Falha ao ler JSON — mantém mensagem genérica
         }
         alert(errorMessage);
         return;
       }
 
-      // sucesso: resposta é PDF (blob)
       const blob = await response.blob();
-
-      // cria URL temporário para download
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -68,7 +64,7 @@ export default function App() {
           Cole o texto do seu CV:
           <textarea
             rows={8}
-            style={{ width: "100%" }}
+            style={{ width: "100%", marginTop: 8 }}
             value={cvText}
             onChange={(e) => setCvText(e.target.value)}
             placeholder="Cole aqui o texto do seu currículo..."
@@ -81,7 +77,7 @@ export default function App() {
           Cole a descrição da vaga:
           <textarea
             rows={6}
-            style={{ width: "100%" }}
+            style={{ width: "100%", marginTop: 8 }}
             value={jobDescription}
             onChange={(e) => setJobDescription(e.target.value)}
             placeholder="Cole aqui o job description..."
@@ -89,7 +85,18 @@ export default function App() {
         </label>
       </div>
 
-      <button onClick={handleSubmit} disabled={isLoading} style={{ padding: "8px 16px" }}>
+      <button
+        onClick={handleSubmit}
+        disabled={isLoading}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: isLoading ? "#ccc" : "#0070f3",
+          color: "#fff",
+          border: "none",
+          borderRadius: 4,
+          cursor: isLoading ? "not-allowed" : "pointer",
+        }}
+      >
         {isLoading ? "Otimizando..." : "Gerar CV Otimizado"}
       </button>
     </div>
