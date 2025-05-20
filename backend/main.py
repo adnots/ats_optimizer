@@ -51,7 +51,10 @@ async def check_openai_api():
         return False
 
 @app.post("/optimize")
-async def optimize_cv(cv_file: UploadFile = File(...), job_description: str = Form(...)):
+async def optimize_cv(
+    cv_text: str = Form(...),
+    job_description: str = Form(...)
+):
     print("📥 Rota /optimize acionada — iniciando processamento...")
 
     # 1) Verificar conexão com OpenAI
@@ -61,21 +64,11 @@ async def optimize_cv(cv_file: UploadFile = File(...), job_description: str = Fo
             content={"status": "fail", "message": "Falha na conexão com a API OpenAI."}
         )
 
-    # 2) Ler e validar PDF (OCULTO: apenas simula texto)
-    try:
-        # contents = await cv_file.read()
-        # pdf_reader = PdfReader(io.BytesIO(contents))
-        # cv_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
-        # if not cv_text.strip():
-        #     return JSONResponse(
-        #         status_code=400,
-        #         content={"status": "fail", "message": "PDF não pôde ser lido ou está vazio."}
-        #     )
-        cv_text = "EXEMPLO DE TEXTO DO CURRÍCULO PARA TESTE"
-    except Exception as e:
+    # 2) Usar texto do CV diretamente
+    if not cv_text.strip():
         return JSONResponse(
             status_code=400,
-            content={"status": "fail", "message": f"Erro ao ler PDF: {str(e)}"}
+            content={"status": "fail", "message": "Texto do CV não pode ser vazio."}
         )
 
     # 3) Enviar prompt para OpenAI

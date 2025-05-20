@@ -3,28 +3,20 @@ import React, { useState } from "react";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 export default function App() {
-  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [cvText, setCvText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setCvFile(e.target.files[0]);
-    }
-  };
-
   const handleSubmit = async () => {
-    if (!jobDescription.trim()) {
-      alert("Por favor, cole a descrição da vaga.");
+    if (!cvText.trim() || !jobDescription.trim()) {
+      alert("Por favor, preencha o texto do CV e a descrição da vaga.");
       return;
     }
 
     setIsLoading(true);
 
     const formData = new FormData();
-    if (cvFile) {
-      formData.append("cv_file", cvFile);
-    }
+    formData.append("cv_text", cvText);
     formData.append("job_description", jobDescription);
 
     try {
@@ -73,8 +65,14 @@ export default function App() {
 
       <div style={{ marginBottom: 16 }}>
         <label>
-          Envie seu CV em PDF exportado do LinkedIn:
-          <input type="file" accept="application/pdf" onChange={handleFileChange} />
+          Cole o texto do seu CV:
+          <textarea
+            rows={8}
+            style={{ width: "100%" }}
+            value={cvText}
+            onChange={(e) => setCvText(e.target.value)}
+            placeholder="Cole aqui o texto do seu currículo..."
+          />
         </label>
       </div>
 
