@@ -61,16 +61,17 @@ async def optimize_cv(cv_file: UploadFile = File(...), job_description: str = Fo
             content={"status": "fail", "message": "Falha na conexão com a API OpenAI."}
         )
 
-    # 2) Ler e validar PDF
+    # 2) Ler e validar PDF (OCULTO: apenas simula texto)
     try:
-        contents = await cv_file.read()
-        pdf_reader = PdfReader(io.BytesIO(contents))
-        cv_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
-        if not cv_text.strip():
-            return JSONResponse(
-                status_code=400,
-                content={"status": "fail", "message": "PDF não pôde ser lido ou está vazio."}
-            )
+        # contents = await cv_file.read()
+        # pdf_reader = PdfReader(io.BytesIO(contents))
+        # cv_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
+        # if not cv_text.strip():
+        #     return JSONResponse(
+        #         status_code=400,
+        #         content={"status": "fail", "message": "PDF não pôde ser lido ou está vazio."}
+        #     )
+        cv_text = "EXEMPLO DE TEXTO DO CURRÍCULO PARA TESTE"
     except Exception as e:
         return JSONResponse(
             status_code=400,
