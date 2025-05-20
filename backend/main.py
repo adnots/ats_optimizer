@@ -9,11 +9,6 @@ import os
 import httpx
 
 
-# Carrega variáveis de ambiente e chave da OpenAI
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-print(f"Chave OpenAI carregada: {'OK' if openai.api_key else 'FALHA'}")
-
 app = FastAPI()
 
 # Corrija para permitir qualquer origem (para teste) — use apenas para depuração!
@@ -22,7 +17,6 @@ app.add_middleware(
     allow_origins=["*"],  # Permite qualquer origem (atenção: não recomendado em produção)
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
 )
 
 @app.get("/")
