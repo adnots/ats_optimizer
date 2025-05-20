@@ -44,12 +44,14 @@ async def check_openai_api():
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://api.openai.com/v1",
+                "https://api.openai.com/v1/models",
                 headers={"Authorization": f"Bearer {openai.api_key}"},
-                timeout=5
+                timeout=10  # aumente o timeout para evitar falsos negativos
             )
+            print(f"OpenAI status code: {response.status_code}, body: {response.text}")
             return response.status_code == 200
-    except Exception:
+    except Exception as e:
+        print(f"Erro ao checar OpenAI API: {e}")
         return False
 
 @app.post("/optimize")
