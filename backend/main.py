@@ -15,13 +15,14 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
 
+# ✅ Adicione isso
 origins = [
-    "https://ats-optimizer-2.onrender.com",
+    "https://ats-optimizer-2.onrender.com",  # frontend
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  
+    allow_origins=origins,  # 👈 frontend autorizado
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
