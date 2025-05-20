@@ -52,6 +52,8 @@ async def check_openai_api():
 
 @app.post("/optimize")
 async def optimize_cv(cv_file: UploadFile = File(...), job_description: str = Form(...)):
+    print("📥 Rota /optimize acionada — iniciando processamento...")
+
     # 1) Verificar conexão com OpenAI
     if not await check_openai_api():
         return JSONResponse(
@@ -75,7 +77,7 @@ async def optimize_cv(cv_file: UploadFile = File(...), job_description: str = Fo
             content={"status": "fail", "message": f"Erro ao ler PDF: {str(e)}"}
         )
 
-    # 3) Enviar prompt para OpenAIx
+    # 3) Enviar prompt para OpenAI
     prompt = f"""
 Você é um especialista em RH com foco em currículos otimizados para ATS (Applicant Tracking Systems).
 Recebeu o seguinte CV:
@@ -95,6 +97,11 @@ Não invente informações, apenas reorganize, ajuste a linguagem e destaque hab
             model="gpt-3.5-turbo",
             temperature=0.7,
             messages=[{"role": "user", "content": prompt}]
+        )
+    except openai.error.AuthenticationError as e:
+        return JSONResponse(
+            status_code=401,
+            content={"status": "fail", "message": "Chave de API OpenAI inválida ou expirada."}
         )
     except Exception as e:
         return JSONResponse(
