@@ -10,6 +10,7 @@ import openai
 import httpx
 
 load_dotenv()
+print(f"Chave OpenAI: {os.getenv('OPENAI_API_KEY')}")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI()
@@ -29,6 +30,13 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "API de Otimização de CV com IA está ativa."}
+
+@app.get("/healthcheck")
+def healthcheck():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return {"status": "error", "message": "OPENAI_API_KEY não configurada"}
+    return {"status": "ok", "openai_configurada": True}
 
 async def check_openai_api():
     try:
