@@ -20,7 +20,7 @@ app = FastAPI()
 # ✅ Adicione todos os domínios frontend e backend usados
 origins = [
     "https://ats-optimizer-2.onrender.com",  # frontend hospedado
-    "https://ats-optimizer-1.onrender.com",  # backend hospedado
+    "https://ats-optimizer-1.onrender.com",  # backend hospedado (caso necessário)
     "http://localhost:5173",                 # desenvolvimento local
 ]
 
