@@ -34,7 +34,7 @@ async def check_openai_api():
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://api.openai.com/v1/models",
+                "https://api.openai.com/v1",
                 headers={"Authorization": f"Bearer {openai.api_key}"},
                 timeout=5
             )
