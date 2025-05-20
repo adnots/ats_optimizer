@@ -17,10 +17,16 @@ print(f"Chave OpenAI carregada: {'OK' if openai.api_key else 'FALHA'}")
 # 🚀 Instância do FastAPI
 app = FastAPI()
 
-# ✅ Middleware CORS com regex para subdomínios da Render
+# ✅ Adicione todos os domínios que você usa
+origins = [
+    "https://ats-optimizer-2.onrender.com",  # frontend hospedado
+    "https://ats-optimizer-1.onrender.com",  # backend hospedado (caso necessário para chamadas entre backends)
+    "http://localhost:5173",                 # desenvolvimento local
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https://.*\.onrender\.com",  # permite qualquer frontend no domínio da Render
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
