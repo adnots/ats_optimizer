@@ -67,7 +67,7 @@ async def optimize_cv(cv_file: UploadFile = File(...), job_description: str = Fo
             content={"status": "fail", "message": f"Erro ao ler PDF: {str(e)}"}
         )
 
-    # 3) Enviar prompt para OpenAI
+    # 3) Enviar prompt para OpenAIx
     prompt = f"""
 Você é um especialista em RH com foco em currículos otimizados para ATS (Applicant Tracking Systems).
 Recebeu o seguinte CV:
