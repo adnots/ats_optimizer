@@ -62,6 +62,13 @@ async def optimize_cv(
 ):
     print("📥 Rota /optimize acionada — iniciando processamento...")
 
+    # Verifica se a chave da OpenAI está configurada
+    if not openai.api_key:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "fail", "message": "OPENAI_API_KEY não configurada no backend."}
+        )
+
     if not await check_openai_api():
         return JSONResponse(
             status_code=503,

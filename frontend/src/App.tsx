@@ -33,13 +33,17 @@ export default function App() {
         try {
           const errorData = await response.json();
           if (errorData.message) errorMessage = errorData.message;
+          // Mostra mensagem detalhada se vier do backend
+          if (errorData.status && errorData.message) {
+            errorMessage = `(${errorData.status}) ${errorData.message}`;
+          }
         } catch {
           // Falha ao ler JSON — mantém mensagem genérica
         }
         alert(errorMessage);
         return;
       }
-
+      
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
