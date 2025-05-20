@@ -3,15 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Corrija a lista de origens permitidas para CORS:
-origins = [
-    "https://ats-optimizer-2.onrender.com",  # frontend hospedado
-    "http://localhost:5173",                 # desenvolvimento local
-]
-
+# Corrija para permitir qualquer origem (para teste) — use apenas para depuração!
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Somente domínios do frontend e localhost
+    allow_origins=["*"],  # Permite qualquer origem (atenção: não recomendado em produção)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
