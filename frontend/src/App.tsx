@@ -14,15 +14,17 @@ export default function App() {
   };
 
   const handleSubmit = async () => {
-    if (!cvFile || !jobDescription.trim()) {
-      alert("Por favor, envie o PDF do CV e cole a descrição da vaga.");
+    if (!jobDescription.trim()) {
+      alert("Por favor, cole a descrição da vaga.");
       return;
     }
 
     setIsLoading(true);
 
     const formData = new FormData();
-    formData.append("cv_file", cvFile);
+    if (cvFile) {
+      formData.append("cv_file", cvFile);
+    }
     formData.append("job_description", jobDescription);
 
     try {
