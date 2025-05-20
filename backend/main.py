@@ -1,5 +1,13 @@
 from fastapi import FastAPI, UploadFile, Form, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse, JSONResponse
+from dotenv import load_dotenv
+from fpdf import FPDF
+import openai  # ✅ ESSA LINHA É ESSENCIAL
+import io
+import os
+import httpx
+
 
 app = FastAPI()
 
