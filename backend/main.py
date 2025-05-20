@@ -3,11 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from dotenv import load_dotenv
 from fpdf import FPDF
-import openai  # ✅ ESSA LINHA É ESSENCIAL
+import openai  # ✅ ESSENCIAL
 import io
 import os
 import httpx
 
+
+# Carrega variáveis de ambiente e chave da OpenAI
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+print(f"Chave OpenAI carregada: {'OK' if openai.api_key else 'FALHA'}")
 
 app = FastAPI()
 
