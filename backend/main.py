@@ -17,16 +17,15 @@ print(f"Chave OpenAI carregada: {'OK' if openai.api_key else 'FALHA'}")
 # 🚀 Instância do FastAPI
 app = FastAPI()
 
-# ✅ Adicione todos os domínios frontend e backend usados
+# Corrija a lista de origens permitidas para CORS:
 origins = [
     "https://ats-optimizer-2.onrender.com",  # frontend hospedado
-    "https://ats-optimizer-1.onrender.com",  # backend hospedado (caso necessário)
     "http://localhost:5173",                 # desenvolvimento local
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # 🟢 Lista branca de domínios
+    allow_origins=origins,  # NÃO inclua o domínio do backend aqui!
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
