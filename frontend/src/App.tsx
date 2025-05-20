@@ -5,7 +5,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000
 export default function App() {
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [jobDescription, setJobDescription] = useState("");
-  const [optimizedCV, setOptimizedCV] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,13 +31,35 @@ export default function App() {
         body: formData,
       });
 
-      if (!response.ok) throw new Error("Erro ao otimizar CV");
+      if (!response.ok) {
+        // tenta extrair mensagem de erro detalhada do JSON
+        let errorMessage = "Erro ao otimizar CV";
+        try {
+          const errorData = await response.json();
+          if (errorData.message) errorMessage = errorData.message;
+        } catch {
+          // erro ao tentar ler JSON, mantem mensagem genérica
+        }
+        alert(errorMessage);
+        return;
+      }
 
-      const data = await response.json();
-      setOptimizedCV(data.optimized_cv);
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao gerar o CV otimizado.");
+      // sucesso: resposta é PDF (blob)
+      const blob = await response.blob();
+
+      // cria URL temporário para download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "cv_otimizado.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      alert("CV otimizado gerado com sucesso!");
+    } catch (error: any) {
+      alert("Erro inesperado: " + (error?.message || error));
     } finally {
       setIsLoading(false);
     }
@@ -71,13 +92,6 @@ export default function App() {
       <button onClick={handleSubmit} disabled={isLoading} style={{ padding: "8px 16px" }}>
         {isLoading ? "Otimizando..." : "Gerar CV Otimizado"}
       </button>
-
-      {optimizedCV && (
-        <div style={{ marginTop: 24, whiteSpace: "pre-wrap", background: "#f5f5f5", padding: 16, borderRadius: 8 }}>
-          <h2>Resultado:</h2>
-          <pre>{optimizedCV}</pre>
-        </div>
-      )}
     </div>
   );
 }

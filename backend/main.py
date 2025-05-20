@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, Form, File, HTTPException
+from fastapi import FastAPI, UploadFile, Form, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
 from PyPDF2 import PdfReader
@@ -7,20 +7,17 @@ from fpdf import FPDF
 import io
 import os
 import openai
+import httpx
 
-# Carrega variáveis de ambiente do .env-
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Instância do FastAPI
 app = FastAPI()
 
 origins = [
     "https://ats-optimizer-2.onrender.com",
-    # Ou "*" para liberar todos, mas não recomendado em produção
 ]
 
-# Configuração de CORS (libera requisições de qualquer origem)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,  
@@ -33,16 +30,45 @@ app.add_middleware(
 def read_root():
     return {"message": "API de Otimização de CV com IA está ativa."}
 
-@app.post("/optimize")
-async def optimize_cv(cv_file: UploadFile, job_description: str = Form(...)):
+async def check_openai_api():
     try:
-        # Leitura do conteúdo do arquivo PDF enviado
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://api.openai.com/v1/models",
+                headers={"Authorization": f"Bearer {openai.api_key}"},
+                timeout=5
+            )
+            return response.status_code == 200
+    except Exception:
+        return False
+
+@app.post("/optimize")
+async def optimize_cv(cv_file: UploadFile = File(...), job_description: str = Form(...)):
+    # 1) Verificar conexão com OpenAI
+    if not await check_openai_api():
+        return JSONResponse(
+            status_code=503,
+            content={"status": "fail", "message": "Falha na conexão com a API OpenAI."}
+        )
+
+    # 2) Ler e validar PDF
+    try:
         contents = await cv_file.read()
         pdf_reader = PdfReader(io.BytesIO(contents))
         cv_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
+        if not cv_text.strip():
+            return JSONResponse(
+                status_code=400,
+                content={"status": "fail", "message": "PDF não pôde ser lido ou está vazio."}
+            )
+    except Exception as e:
+        return JSONResponse(
+            status_code=400,
+            content={"status": "fail", "message": f"Erro ao ler PDF: {str(e)}"}
+        )
 
-        # Monta prompt para otimização via OpenAI
-        prompt = f"""
+    # 3) Enviar prompt para OpenAI
+    prompt = f"""
 Você é um especialista em RH com foco em currículos otimizados para ATS (Applicant Tracking Systems).
 Recebeu o seguinte CV:
 
@@ -54,49 +80,49 @@ E a seguinte descrição de vaga:
 
 Com base nisso, reescreva e otimize o CV, adaptando-o para essa vaga, destacando os pontos relevantes.
 Não invente informações, apenas reorganize, ajuste a linguagem e destaque habilidades e experiências alinhadas.
-        """
+    """
 
-        # Chamada à OpenAI
+    try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             temperature=0.7,
             messages=[{"role": "user", "content": prompt}]
         )
-        optimized_text = response["choices"][0]["message"]["content"]
-
-        # Geração do PDF otimizado
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.set_font("Arial", size=12)
-
-        for line in optimized_text.split('\n'):
-            pdf.multi_cell(0, 10, line)
-
-        pdf_output = io.BytesIO()
-        pdf.output(pdf_output)
-        pdf_output.seek(0)
-
-        headers = {
-            "Content-Disposition": 'attachment; filename="cv_otimizado.pdf"'
-        }
-
-        return StreamingResponse(pdf_output, media_type="application/pdf", headers=headers)
-
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        return JSONResponse(
+            status_code=500,
+            content={"status": "fail", "message": f"Erro ao enviar prompt para OpenAI: {str(e)}"}
+        )
 
-@app.post("/optimize")
-async def optimize(cv: UploadFile = File(...)):
+    # 4) Validar resposta OpenAI
     try:
-        contents = await cv.read()
-        print(f"Arquivo recebido: {cv.filename}, tamanho: {len(contents)} bytes")
-
-        # processar o conteúdo...
-        return {"mensagem": "CV otimizado com sucesso"}
-
+        optimized_text = response["choices"][0]["message"]["content"]
+        if not optimized_text.strip():
+            return JSONResponse(
+                status_code=500,
+                content={"status": "fail", "message": "Resposta da OpenAI está vazia."}
+            )
     except Exception as e:
-        import traceback
-        print("Erro ao processar CV:")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Erro interno: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"status": "fail", "message": f"Erro ao processar resposta da OpenAI: {str(e)}"}
+        )
+
+    # Gerar PDF otimizado
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Arial", size=12)
+
+    for line in optimized_text.split('\n'):
+        pdf.multi_cell(0, 10, line)
+
+    pdf_output = io.BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
+
+    headers = {
+        "Content-Disposition": 'attachment; filename="cv_otimizado.pdf"'
+    }
+
+    return StreamingResponse(pdf_output, media_type="application/pdf", headers=headers)
