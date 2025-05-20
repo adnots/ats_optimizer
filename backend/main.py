@@ -23,6 +23,11 @@ app.add_middleware(
 def read_root():
     return {"message": "API de Otimização de CV com IA está ativa."}
 
+@app.head("/")
+def head_root():
+    # Retorna o mesmo que o GET, mas sem corpo (padrão para HEAD)
+    return
+
 @app.get("/healthcheck")
 def healthcheck():
     api_key = os.getenv("OPENAI_API_KEY")
