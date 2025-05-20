@@ -71,7 +71,7 @@ async def optimize_cv(
             content={"status": "fail", "message": "Texto do CV não pode ser vazio."}
         )
 
-    # 3) Enviar prompt para OpenAI
+    # 3) Enviar prompt para OpenAIs
     prompt = f"""
 Você é um especialista em RH com foco em currículos otimizados para ATS (Applicant Tracking Systems).
 Recebeu o seguinte CV:
