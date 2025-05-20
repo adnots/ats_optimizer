@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = "https://ats-optimizer-1.onrender.com";
 
 // Domínio frontend configurado: 
 // https://ats-optimizer-2.onrender.com

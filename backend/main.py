@@ -1,20 +1,6 @@
 from fastapi import FastAPI, UploadFile, Form, File
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
-from PyPDF2 import PdfReader
-from dotenv import load_dotenv
-from fpdf import FPDF
-import io
-import os
-import openai
-import httpx
 
-# 🔑 Carrega variáveis de ambiente
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-print(f"Chave OpenAI carregada: {'OK' if openai.api_key else 'FALHA'}")
-
-# 🚀 Instância do FastAPI
 app = FastAPI()
 
 # Corrija a lista de origens permitidas para CORS:
@@ -25,7 +11,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # NÃO inclua o domínio do backend aqui!
+    allow_origins=origins,  # Somente domínios do frontend e localhost
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
