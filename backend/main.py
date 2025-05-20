@@ -9,21 +9,18 @@ import os
 import openai
 import httpx
 
+# 🔑 Carrega variáveis de ambiente
 load_dotenv()
-print(f"Chave OpenAI: {os.getenv('OPENAI_API_KEY')}")
 openai.api_key = os.getenv("OPENAI_API_KEY")
+print(f"Chave OpenAI carregada: {'OK' if openai.api_key else 'FALHA'}")
 
+# 🚀 Instância do FastAPI
 app = FastAPI()
 
-# ✅ Adicione todos os domínios que você usa
-origins = [
-    "https://ats-optimizer-2.onrender.com",  # frontend hospedado
-    "http://localhost:5173",                 # desenvolvimento local
-]
-
+# ✅ Middleware CORS com regex para subdomínios da Render
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # 🟢 Lista branca de domínios
+    allow_origin_regex=r"https://.*\.onrender\.com",  # permite qualquer frontend no domínio da Render
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -59,21 +56,18 @@ async def optimize_cv(
 ):
     print("📥 Rota /optimize acionada — iniciando processamento...")
 
-    # 1) Verificar conexão com OpenAI
     if not await check_openai_api():
         return JSONResponse(
             status_code=503,
             content={"status": "fail", "message": "Falha na conexão com a API OpenAI."}
         )
 
-    # 2) Usar texto do CV diretamente
     if not cv_text.strip():
         return JSONResponse(
             status_code=400,
             content={"status": "fail", "message": "Texto do CV não pode ser vazio."}
         )
 
-    # 3) Enviar prompt para OpenAI
     prompt = f"""
 Você é um especialista em RH com foco em currículos otimizados para ATS (Applicant Tracking Systems).
 Recebeu o seguinte CV:
@@ -94,7 +88,7 @@ Não invente informações, apenas reorganize, ajuste a linguagem e destaque hab
             temperature=0.7,
             messages=[{"role": "user", "content": prompt}]
         )
-    except openai.error.AuthenticationError as e:
+    except openai.error.AuthenticationError:
         return JSONResponse(
             status_code=401,
             content={"status": "fail", "message": "Chave de API OpenAI inválida ou expirada."}
@@ -105,7 +99,6 @@ Não invente informações, apenas reorganize, ajuste a linguagem e destaque hab
             content={"status": "fail", "message": f"Erro ao enviar prompt para OpenAI: {str(e)}"}
         )
 
-    # 4) Validar resposta OpenAI
     try:
         optimized_text = response["choices"][0]["message"]["content"]
         if not optimized_text.strip():
@@ -119,7 +112,7 @@ Não invente informações, apenas reorganize, ajuste a linguagem e destaque hab
             content={"status": "fail", "message": f"Erro ao processar resposta da OpenAI: {str(e)}"}
         )
 
-    # Gerar PDF otimizado
+    # Gera PDF com o texto otimizado
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
